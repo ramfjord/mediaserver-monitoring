@@ -1,0 +1,159 @@
+groups:
+- name: MediaServer
+  rules:
+    
+    - alert: UnitDownRadarr
+      expr: node_systemd_unit_state{name="radarr.service", state="active"} != 1
+      for: 5m
+      labels:
+        service: Radarr
+      annotations:
+        summary: "Radarr - systemd unit radarr down"
+        service_desc: "find movies - 7878"
+
+    - alert: UnitNeverStartedRadarr
+      expr: absent(node_systemd_unit_state{name="radarr.service"})
+      for: 5m
+      labels:
+        service: Radarr
+      annotations:
+        summary: "Radarr - missing metrics for systemd unit radarr"
+        service_desc: "find movies - 7878"
+    
+    - alert: UnitDownSonarr
+      expr: node_systemd_unit_state{name="sonarr.service", state="active"} != 1
+      for: 5m
+      labels:
+        service: Sonarr
+      annotations:
+        summary: "Sonarr - systemd unit sonarr down"
+        service_desc: "shows"
+
+    - alert: UnitNeverStartedSonarr
+      expr: absent(node_systemd_unit_state{name="sonarr.service"})
+      for: 5m
+      labels:
+        service: Sonarr
+      annotations:
+        summary: "Sonarr - missing metrics for systemd unit sonarr"
+        service_desc: "shows"
+    
+    - alert: UnitDownProwlarr
+      expr: node_systemd_unit_state{name="prowlarr.service", state="active"} != 1
+      for: 5m
+      labels:
+        service: Prowlarr
+      annotations:
+        summary: "Prowlarr - systemd unit prowlarr down"
+        service_desc: "admin tool - 9696"
+
+    - alert: UnitNeverStartedProwlarr
+      expr: absent(node_systemd_unit_state{name="prowlarr.service"})
+      for: 5m
+      labels:
+        service: Prowlarr
+      annotations:
+        summary: "Prowlarr - missing metrics for systemd unit prowlarr"
+        service_desc: "admin tool - 9696"
+    
+    - alert: UnitDownVPN
+      expr: node_systemd_unit_state{name="wg-quick@america.service", state="active"} != 1
+      for: 5m
+      labels:
+        service: VPN
+      annotations:
+        summary: "VPN - systemd unit wg-quick@america down"
+        service_desc: "VPN"
+
+    - alert: UnitNeverStartedVPN
+      expr: absent(node_systemd_unit_state{name="wg-quick@america.service"})
+      for: 5m
+      labels:
+        service: VPN
+      annotations:
+        summary: "VPN - missing metrics for systemd unit wg-quick@america"
+        service_desc: "VPN"
+    
+    - alert: UnitDownPlex
+      expr: node_systemd_unit_state{name="plexmediaserver.service", state="active"} != 1
+      for: 5m
+      labels:
+        service: Plex
+      annotations:
+        summary: "Plex - systemd unit plexmediaserver down"
+        service_desc: "Media streaming - 32400"
+
+    - alert: UnitNeverStartedPlex
+      expr: absent(node_systemd_unit_state{name="plexmediaserver.service"})
+      for: 5m
+      labels:
+        service: Plex
+      annotations:
+        summary: "Plex - missing metrics for systemd unit plexmediaserver"
+        service_desc: "Media streaming - 32400"
+    
+
+- name: Prometheus
+  rules:
+  - alert: PrometheusTooManyRestarts
+    expr: changes(process_start_time_seconds{job=~"prometheus|pushgateway|alertmanager"}[15m]) > 2
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus too many restarts (instance {{ $labels.instance }})
+      description: "Prometheus has restarted more than twice in the last 15 minutes. It might be crashlooping.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusConfigurationReloadFailure
+    expr: prometheus_config_last_reload_successful != 1
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus configuration reload failure (instance {{ $labels.instance }})
+      description: "Prometheus configuration reload error\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusRuleEvaluationFailures
+    expr: increase(prometheus_rule_evaluation_failures_total[3m]) > 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus rule evaluation failures (instance {{ $labels.instance }})
+      description: "Prometheus encountered {{ $value }} rule evaluation failures, leading to potentially ignored alerts.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusTemplateTextExpansionFailures
+    expr: increase(prometheus_template_text_expansion_failures_total[3m]) > 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus template text expansion failures (instance {{ $labels.instance }})
+      description: "Prometheus encountered {{ $value }} template text expansion failures\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusRuleEvaluationSlow
+    expr: prometheus_rule_group_last_duration_seconds > prometheus_rule_group_interval_seconds
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus rule evaluation slow (instance {{ $labels.instance }})
+      description: "Prometheus rule evaluation took more time than the scheduled interval. It indicates a slower storage backend access or too complex query.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusAlertmanagerE2eDeadManSwitch
+    expr: vector(1)
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus AlertManager E2E dead man switch (instance {{ $labels.instance }})
+      description: "Prometheus DeadManSwitch is an always-firing alert. It's used as an end-to-end test of Prometheus through the Alertmanager.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: PrometheusAlertmanagerConfigurationReloadFailure
+    expr: alertmanager_config_last_reload_successful != 1
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus AlertManager configuration reload failure (instance {{ $labels.instance }})
+      description: "AlertManager configuration reload error\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
