@@ -1,24 +1,23 @@
-YAMLS := $(patsubst %.yaml.erb,%.yaml,$(wildcard */*.yaml.erb *.yaml.erb))
+ERBS := $(patsubst %.erb,%,$(wildcard */*/*.erb */*.erb))
 
 .PHONY: clean all check deploy
-all: $(YAMLS)
+all: $(ERBS)
 
 clean:
-	rm -rf $(YAMLS)
+	rm -rf $(ERBS)
 
 check: all
-	promtool check config prometheus.yml
+	promtool check config prometheus/prometheus.yml
+	amtool check-config alertmanager/alertmanager.yml
 
-deploy: clean all check
+deploy: check
+	cp -r prometheus/* /etc/prometheus/
+	sudo systemctl reload prometheus
+	sudo systemctl reload prometheus-blackbox-exporter
+	sudo cp -r alertmanager/* /etc/alertmanager/
+	sudo chown -R root:root /etc/alertmanager
+	sudo systemctl reload alertmanager
 
-%.yaml: %.yaml.erb build.rb
-	./build.rb < $(@).erb > $@
+$(ERBS): %: %.erb render.rb services.yml
+	./render.rb < $@.erb > $@
 	chown $(USER):prometheus $@
-
-# rules.yaml: build.rb rules.yaml.erb
-# 	make clean rules.yaml.tmp
-# 	promtool check rules rules.yaml.tmp
-# 	mv rules.yaml.tmp rules.yaml
-# 	chown tramfjord:prometheus rules.yaml
-# 	cp rules.yaml /etc/prometheus/rules.yaml
-# 	sudo systemctl reload prometheus

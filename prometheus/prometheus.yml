@@ -15,6 +15,5 @@ alerting:
 rule_files:
   - "rules/*.yaml"
 
-
 scrape_config_files:
   - "scrape_configs/*.yaml"

@@ -1,0 +1,45 @@
+objectives:
+  - downloading
+  - streaming
+  - monitoring
+services:
+- name: radarr
+  partof: downloading
+  unit: radarr
+  desc: find movies - 7878
+  port: 7878
+
+- name: sonarr
+  partof: downloading
+  unit: sonarr
+  desc: find new shows - 8989
+  port: 8989
+
+- name: prowlarr
+  partof: downloading
+  unit: prowlarr
+  desc: Admin others - 9696
+  port: 9696
+
+- name: qbittorrent
+  partof: downloading
+  unit: qbittorrent-nox@tramfjord
+  desc: BT client
+  port: 8080
+
+- name: deluge
+  partof: downloading
+  unit: deluge-web
+  desc: BT client
+  port: 8112
+
+- name: wirguard
+  unit: wg-quick@america
+  desc: VPN
+
+- name: plex
+  partof: streaming
+  unit: plexmediaserver
+  desc: Media streaming - 32400
+  port: 32400
+  healthz: /web/index.html

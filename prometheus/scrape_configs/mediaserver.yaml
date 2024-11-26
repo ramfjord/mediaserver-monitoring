@@ -1,0 +1,214 @@
+scrape_configs:
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["localhost:9100"]
+    metric_relabel_configs:
+      
+      - target_label: service
+        action: replace
+        replacement: radarr
+        source_labels: [name]
+        regex: "radarr.service"
+      
+      - target_label: service
+        action: replace
+        replacement: sonarr
+        source_labels: [name]
+        regex: "sonarr.service"
+      
+      - target_label: service
+        action: replace
+        replacement: prowlarr
+        source_labels: [name]
+        regex: "prowlarr.service"
+      
+      - target_label: service
+        action: replace
+        replacement: qbittorrent
+        source_labels: [name]
+        regex: "qbittorrent-nox@tramfjord.service"
+      
+      - target_label: service
+        action: replace
+        replacement: deluge
+        source_labels: [name]
+        regex: "deluge-web.service"
+      
+      - target_label: service
+        action: replace
+        replacement: wirguard
+        source_labels: [name]
+        regex: "wg-quick@america.service"
+      
+      - target_label: service
+        action: replace
+        replacement: plex
+        source_labels: [name]
+        regex: "plexmediaserver.service"
+      
+
+      
+      
+      - target_label: partof
+        replacement: downloading
+        source_labels: [name]
+        action: replace
+        regex: "(radarr|sonarr|prowlarr|qbittorrent-nox@tramfjord|deluge-web).service"
+      
+      - target_label: partof
+        replacement: streaming
+        source_labels: [name]
+        action: replace
+        regex: "(plexmediaserver).service"
+      
+
+  
+    
+  - job_name: 'http_probe_radarr'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:7878
+        labels:
+          service: radarr
+          partof: downloading
+          description: "find movies - 7878"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+    
+  - job_name: 'http_probe_sonarr'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:8989
+        labels:
+          service: sonarr
+          partof: downloading
+          description: "find new shows - 8989"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+    
+  - job_name: 'http_probe_prowlarr'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:9696
+        labels:
+          service: prowlarr
+          partof: downloading
+          description: "Admin others - 9696"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+    
+  - job_name: 'http_probe_qbittorrent'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:8080
+        labels:
+          service: qbittorrent
+          partof: downloading
+          description: "BT client"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+    
+  - job_name: 'http_probe_deluge'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:8112
+        labels:
+          service: deluge
+          partof: downloading
+          description: "BT client"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+    
+  
+    
+  - job_name: 'http_probe_plex'
+    metrics_path: /probe
+    params:
+      module: [http_basic]
+    static_configs:
+      - targets:
+        - http://localhost:32400/web/index.html
+        labels:
+          service: plex
+          partof: streaming
+          description: "Media streaming - 32400"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+     
+  
+
+  - job_name: http_probe_google
+    # Scrape this less often to not overburden plex homepage - if DNS goes down I should be able to fix it later
+    # scrape_interval: 5m
+    metrics_path: /probe
+    params:
+      module: [http_head]
+    static_configs:
+      - targets:
+        - 'https://www.google.com'
+        labels:
+          partof: streaming
+          service: google
+          description: "HTTP probe on google.com - failing might mean DNS is down"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.

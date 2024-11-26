@@ -1,4 +1,0 @@
-modules:
-  http_basic:
-    prober: http
-    timeout: 5s

@@ -1,0 +1,96 @@
+groups:
+- name: MediaServer
+  rules:
+    - alert: SystemdUnitDown
+      expr: node_systemd_unit_state{service=~".+", state="active"} != 1
+      for: 5m
+      annotations:
+        summary: "{{ $labels.service }} - systemd unit {{ $labels.name}} is down"
+
+    
+    - alert: UnitNeverStartedradarr
+      expr: absent(node_systemd_unit_state{name="radarr.service"})
+      for: 5m
+      labels:
+        partof: downloading
+        service: radarr
+      annotations:
+        summary: "radarr - missing metrics for systemd unit radarr"
+        description: "find movies - 7878"
+    
+    - alert: UnitNeverStartedsonarr
+      expr: absent(node_systemd_unit_state{name="sonarr.service"})
+      for: 5m
+      labels:
+        partof: downloading
+        service: sonarr
+      annotations:
+        summary: "sonarr - missing metrics for systemd unit sonarr"
+        description: "find new shows - 8989"
+    
+    - alert: UnitNeverStartedprowlarr
+      expr: absent(node_systemd_unit_state{name="prowlarr.service"})
+      for: 5m
+      labels:
+        partof: downloading
+        service: prowlarr
+      annotations:
+        summary: "prowlarr - missing metrics for systemd unit prowlarr"
+        description: "Admin others - 9696"
+    
+    - alert: UnitNeverStartedqbittorrent
+      expr: absent(node_systemd_unit_state{name="qbittorrent-nox@tramfjord.service"})
+      for: 5m
+      labels:
+        partof: downloading
+        service: qbittorrent
+      annotations:
+        summary: "qbittorrent - missing metrics for systemd unit qbittorrent-nox@tramfjord"
+        description: "BT client"
+    
+    - alert: UnitNeverStarteddeluge
+      expr: absent(node_systemd_unit_state{name="deluge-web.service"})
+      for: 5m
+      labels:
+        partof: downloading
+        service: deluge
+      annotations:
+        summary: "deluge - missing metrics for systemd unit deluge-web"
+        description: "BT client"
+    
+    - alert: UnitNeverStartedwirguard
+      expr: absent(node_systemd_unit_state{name="wg-quick@america.service"})
+      for: 5m
+      labels:
+        partof: 
+        service: wirguard
+      annotations:
+        summary: "wirguard - missing metrics for systemd unit wg-quick@america"
+        description: "VPN"
+    
+    - alert: UnitNeverStartedplex
+      expr: absent(node_systemd_unit_state{name="plexmediaserver.service"})
+      for: 5m
+      labels:
+        partof: streaming
+        service: plex
+      annotations:
+        summary: "plex - missing metrics for systemd unit plexmediaserver"
+        description: "Media streaming - 32400"
+    
+
+    - alert: VolumeFillingUp
+      expr: (100 - ((node_filesystem_avail_bytes{mountpoint=~"/|/media.*"} * 100) / node_filesystem_size_bytes)) > 75
+      labels:
+        partof: streaming
+        service: disk
+      annotations:
+        description: "Volume mounted at is over 75% full {{ $labels }}"
+
+    - alert: MediaVolumeUnmounted
+      expr: absent(node_filesystem_avail_bytes{mountpoint=~"/media.*"})
+      labels:
+        partof: streaming
+        service: disk
+      annotations:
+        description: "The media volume is unmounted for some reason"
