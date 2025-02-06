@@ -33,7 +33,8 @@ services:
   desc: BT client
   port: 8112
 
-- name: wirguard
+- name: wireguard
+  partof: downloading
   unit: wg-quick@america
   desc: VPN
 

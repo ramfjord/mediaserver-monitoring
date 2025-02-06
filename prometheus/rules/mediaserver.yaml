@@ -58,14 +58,14 @@ groups:
         summary: "deluge - missing metrics for systemd unit deluge-web"
         description: "BT client"
     
-    - alert: UnitNeverStartedwirguard
+    - alert: UnitNeverStartedwireguard
       expr: absent(node_systemd_unit_state{name="wg-quick@america.service"})
       for: 5m
       labels:
-        partof: 
-        service: wirguard
+        partof: downloading
+        service: wireguard
       annotations:
-        summary: "wirguard - missing metrics for systemd unit wg-quick@america"
+        summary: "wireguard - missing metrics for systemd unit wg-quick@america"
         description: "VPN"
     
     - alert: UnitNeverStartedplex

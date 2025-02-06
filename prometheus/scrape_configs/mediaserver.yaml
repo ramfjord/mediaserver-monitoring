@@ -1,7 +1,12 @@
 scrape_configs:
-  - job_name: "node_exporter"
+  - job_name: system_exporters
     static_configs:
       - targets: ["localhost:9100"]
+        labels:
+          exporter: node_exporter
+      - targets: ["localhost:9558"]
+        labels:
+          exporter: systemd_exporter
     metric_relabel_configs:
       
       - target_label: service
@@ -36,7 +41,7 @@ scrape_configs:
       
       - target_label: service
         action: replace
-        replacement: wirguard
+        replacement: wireguard
         source_labels: [name]
         regex: "wg-quick@america.service"
       
@@ -53,7 +58,7 @@ scrape_configs:
         replacement: downloading
         source_labels: [name]
         action: replace
-        regex: "(radarr|sonarr|prowlarr|qbittorrent-nox@tramfjord|deluge-web).service"
+        regex: "(radarr|sonarr|prowlarr|qbittorrent-nox@tramfjord|deluge-web|wg-quick@america).service"
       
       - target_label: partof
         replacement: streaming
@@ -192,23 +197,23 @@ scrape_configs:
      
   
 
-  - job_name: http_probe_google
-    # Scrape this less often to not overburden plex homepage - if DNS goes down I should be able to fix it later
-    # scrape_interval: 5m
-    metrics_path: /probe
-    params:
-      module: [http_head]
-    static_configs:
-      - targets:
-        - 'https://www.google.com'
-        labels:
-          partof: streaming
-          service: google
-          description: "HTTP probe on google.com - failing might mean DNS is down"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
+  # - job_name: http_probe_google
+  #   # Scrape this less often to not overburden plex homepage - if DNS goes down I should be able to fix it later
+  #   # scrape_interval: 5m
+  #   metrics_path: /probe
+  #   params:
+  #     module: [http_head]
+  #   static_configs:
+  #     - targets:
+  #       - 'https://www.google.com'
+  #       labels:
+  #         partof: streaming
+  #         service: google
+  #         description: "HTTP probe on google.com - failing might mean DNS is down"
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: __param_target
+  #     - source_labels: [__param_target]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: "localhost:9115"  # The blackbox exporter's real hostname:port.
