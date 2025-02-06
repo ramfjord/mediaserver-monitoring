@@ -1,0 +1,1 @@
+This is just some monitoring I use for my manjaro mediaserver.  I found it easiest to use the AUR packages to get a coherent system.  Perhaps docker + salt would be nice in the future.  I had fun playing around with the Makefile syntax to make it easy for me to update these alerts.
