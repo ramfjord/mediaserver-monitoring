@@ -1,0 +1,10 @@
+# Auto-generated files (do not edit this section)
+prometheus/rules/blackbox.yaml
+prometheus/rules/mediaserver.yaml
+prometheus/scrape_configs/mediaserver.yaml
+systemd/radarr.service
+systemd/sonarr.service
+systemd/prowlarr.service
+systemd/wireguard.service
+docker-compose.yml
+# End auto-generated

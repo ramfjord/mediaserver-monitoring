@@ -2,24 +2,49 @@ objectives:
   - downloading
   - streaming
   - monitoring
+
+# Base paths
+config_base: /home/tramfjord/projects/mediaserver/config
+compose_file: /home/tramfjord/projects/mediaserver/docker-compose.yml
+
 services:
+- name: wireguard
+  partof: vpn
+  desc: VPN container
+  image: lscr.io/linuxserver/wireguard:latest
+  is_vpn_gateway: true
+  volumes:
+    - ${config_base}/wireguard:/config
+    - /lib/modules:/lib/modules:ro
+
 - name: radarr
   partof: downloading
-  unit: radarr
-  desc: find movies - 7878
+  desc: find movies
   port: 7878
+  image: lscr.io/linuxserver/radarr:latest
+  uses_vpn: true
+  volumes:
+    - ${config_base}/radarr:/config
+    - /data:/data
 
 - name: sonarr
   partof: downloading
-  unit: sonarr
-  desc: find new shows - 8989
+  desc: find new shows
   port: 8989
+  image: lscr.io/linuxserver/sonarr:latest
+  uses_vpn: true
+  volumes:
+    - ${config_base}/sonarr:/config
+    - /data:/data
 
 - name: prowlarr
   partof: downloading
-  unit: prowlarr
-  desc: Admin others - 9696
+  desc: indexer manager
   port: 9696
+  image: lscr.io/linuxserver/prowlarr:latest
+  uses_vpn: true
+  volumes:
+    - ${config_base}/prowlarr:/config
 
 - name: qbittorrent
   partof: downloading
@@ -33,14 +58,9 @@ services:
   desc: BT client
   port: 8112
 
-- name: wireguard
-  partof: VPN
-  unit: wg-quick@america
-  desc: VPN
-
 - name: plex
   partof: streaming
   unit: plexmediaserver
-  desc: Media streaming - 32400
+  desc: Media streaming
   port: 32400
   healthz: /web/index.html

@@ -1,0 +1,49 @@
+services:
+  wireguard:
+    image: <%= vpn_gateway["image"] %>
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+% vpn_gateway["volumes"].each do |vol|
+      - <%= vol.gsub(config_base, './config') %>
+% end
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1
+    ports:
+% vpn_services.each do |svc|
+      - "<%= svc["port"] %>:<%= svc["port"] %>"
+% end
+    healthcheck:
+      test: ping -c 1 1.1.1.1 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+% vpn_services.each do |svc|
+  <%= svc["name"] %>:
+    image: <%= svc["image"] %>
+    container_name: <%= svc["name"] %>
+    network_mode: "service:wireguard"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+%   svc["volumes"].each do |vol|
+      - <%= vol.gsub(config_base, './config') %>
+%   end
+    depends_on:
+      wireguard:
+        condition: service_healthy
+    restart: unless-stopped
+
+% end
