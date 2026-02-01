@@ -1,0 +1,37 @@
+[Unit]
+Description=Radarr Container (via WireGuard)
+After=wireguard.service
+Requires=wireguard.service
+BindsTo=wireguard.service
+PartOf=wireguard.service
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=10
+
+# Wait for WireGuard tunnel to be established
+ExecStartPre=/home/tramfjord/projects/mediaserver/systemd/wait-for-wireguard.sh
+
+# Remove existing container if it exists
+ExecStartPre=-/usr/bin/docker stop radarr
+ExecStartPre=-/usr/bin/docker rm radarr
+ExecStartPre=/usr/bin/docker pull lscr.io/linuxserver/radarr:latest
+
+ExecStart=/usr/bin/docker run \
+    --name radarr \
+    --network=container:wireguard \
+    -e PUID=1000 \
+    -e PGID=1000 \
+    -e TZ=Etc/UTC \
+    -v /home/tramfjord/projects/mediaserver/config/radarr:/config \
+    -v /data:/data \
+    --log-driver=journald \
+    lscr.io/linuxserver/radarr:latest
+
+ExecStop=/usr/bin/docker stop radarr
+ExecStopPost=-/usr/bin/docker rm radarr
+
+[Install]
+WantedBy=multi-user.target

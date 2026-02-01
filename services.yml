@@ -34,7 +34,7 @@ services:
   port: 8112
 
 - name: wireguard
-  partof: downloading
+  partof: VPN
   unit: wg-quick@america
   desc: VPN
 
